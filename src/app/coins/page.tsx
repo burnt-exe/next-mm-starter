@@ -36,13 +36,14 @@ const fetchCryptoPrices = async () => {
       if (response.status === 200) {
         return response.data;
       }
+    } catch (error) {
       console.warn(`API failed: ${api}, trying next...`);
+      console.error(`Error fetching data from ${api}:`, error);
     }
   }
 
-  return { error: `All API sources failed to load data. Last error: ${error.message}` };
-};
   return { error: `All API sources failed to load data.` };
+};
 const CryptoTable = () => {
   const [coins, setCoins] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -124,4 +125,4 @@ export default function CoinsPageComponent() {
     </Box>
   );
 }
-}
+
