@@ -1,15 +1,13 @@
 'use client';
 import dynamic from 'next/dynamic';
-// import Chart from 'react-apexcharts';
-const Chart = dynamic(() => import('react-apexcharts'), {
-  ssr: false,
-});
+
+// Dynamically import ApexCharts for SSR support
+const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 const LineAreaChart = (props: any) => {
   const { chartData, chartOptions } = props;
 
   return (
-    // @ts-expect-error
     <Chart
       options={chartOptions}
       type="area"

@@ -44,8 +44,16 @@ const fetchCryptoPrices = async () => {
 
   return { error: `All API sources failed to load data.` };
 };
+interface Coin {
+  id: string;
+  market_cap_rank: number;
+  current_price: number;
+  price: string;
+  price_change_percentage_24h: number;
+}
+
 const CryptoTable = () => {
-  const [coins, setCoins] = useState([]);
+  const [coins, setCoins] = useState<Coin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
