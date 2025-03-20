@@ -22,8 +22,9 @@ const CryptoTable = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetchCryptoPrices();
-      if (response.error) {
-        setError(response.error);
+
+      if (!Array.isArray(response)) {
+        setError(response.error); // ✅ Handle error properly
       } else {
         setCoins(response);
       }
@@ -31,7 +32,7 @@ const CryptoTable = () => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(fetchData, 30000); // Refresh every 30s
     return () => clearInterval(interval);
   }, []);
 
@@ -41,7 +42,7 @@ const CryptoTable = () => {
         Live Cryptocurrency Prices
       </Text>
 
-      {error ? <Text color="red.500">{error}</Text> : null}
+      {error && <Text color="red.500">{error}</Text>}
 
       {loading ? (
         <Flex justify="center" align="center">
@@ -53,25 +54,23 @@ const CryptoTable = () => {
             <Tr>
               <Th>Rank</Th>
               <Th>Name</Th>
-              <Th>Ticker</Th>
+              <Th>Symbol</Th>
               <Th>Price (USD)</Th>
               <Th>24h Change</Th>
-              <Th>Hourly Volume</Th>
+              <Th>Volume</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {coins.map((coin, index) => (
-              <Tr key={coin.id || index}>
+            {coins.map((coin) => (
+              <Tr key={coin.id}>
                 <Td>{coin.market_cap_rank || "N/A"}</Td>
-                <Td>{coin.name || "Unknown"}</Td>
+                <Td>{coin.name}</Td>
                 <Td>{coin.symbol.toUpperCase()}</Td>
-                <Td>${coin.current_price?.toFixed(2) || "N/A"}</Td>
+                <Td>${coin.current_price.toFixed(2)}</Td>
                 <Td color={coin.price_change_percentage_24h < 0 ? "red.500" : "green.500"}>
                   <Flex align="center">
                     <Icon as={coin.price_change_percentage_24h > 0 ? FaArrowUp : FaArrowDown} mr={2} />
-                    {coin.price_change_percentage_24h
-                      ? `${coin.price_change_percentage_24h.toFixed(2)}%`
-                      : "N/A"}
+                    {coin.price_change_percentage_24h.toFixed(2)}%
                   </Flex>
                 </Td>
                 <Td>${coin.total_volume.toLocaleString()}</Td>
